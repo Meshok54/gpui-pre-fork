@@ -771,6 +771,27 @@ pub struct PaintSurface {
     pub content_mask: ContentMask<ScaledPixels>,
     #[cfg(target_os = "macos")]
     pub image_buffer: core_video::pixel_buffer::CVPixelBuffer,
+    /// Текстура хоста (Android): кадр камеры и т. п., который рисует не GPUI (`Window::paint_host_texture`).
+    #[cfg(target_os = "android")]
+    pub texture: HostTexture,
+    /// Скругление углов (у текстуры хоста; кружок — радиус в половину стороны).
+    #[cfg(target_os = "android")]
+    pub corner_radii: Corners<ScaledPixels>,
+}
+
+/// Текстура хоста для `Window::paint_host_texture`: номер, под которым хост отдал её рендеру
+/// (`WgpuRenderer::set_host_texture`), и как её читать в прямоугольник элемента.
+#[cfg(target_os = "android")]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HostTexture {
+    /// Номер текстуры у рендера.
+    pub id: u32,
+    /// Область текстуры после поворота и зеркала, в долях: x, y, ширина, высота (вся — 0, 0, 1, 1).
+    pub uv: [f32; 4],
+    /// Поворот текстуры по часовой: 0, 90, 180, 270.
+    pub rotation: u16,
+    /// Зеркало по горизонтали (после поворота).
+    pub mirror: bool,
 }
 
 impl From<PaintSurface> for Primitive {

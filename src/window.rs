@@ -4993,6 +4993,26 @@ impl Window {
         });
     }
 
+    /// Нарисовать текстуру хоста (Android: кадр камеры и т. п.) в `bounds` со скруглением `corner_radii`.
+    /// Только в фазе paint, как и остальные примитивы.
+    #[cfg(target_os = "android")]
+    pub fn paint_host_texture(&mut self, bounds: Bounds<Pixels>, corner_radii: Corners<Pixels>, texture: crate::HostTexture) {
+        use crate::PaintSurface;
+
+        self.invalidator.debug_assert_paint();
+
+        let scale_factor = self.scale_factor();
+        let bounds = self.snap_bounds(bounds);
+        let content_mask = self.snapped_content_mask();
+        self.next_frame.scene.insert_primitive(PaintSurface {
+            order: 0,
+            bounds,
+            content_mask,
+            texture,
+            corner_radii: corner_radii.scale(scale_factor),
+        });
+    }
+
     /// Removes an image from the sprite atlas.
     pub fn drop_image(&mut self, data: Arc<RenderImage>) -> Result<()> {
         for frame_index in 0..data.frame_count() {
