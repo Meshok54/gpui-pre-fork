@@ -5013,6 +5013,28 @@ impl Window {
         });
     }
 
+    /// Нарисовать кольцо (Android): круг, вписанный в `bounds`, толщиной `width`, цвета `color`, с заливкой `fill`
+    /// (прозрачная — только кольцо). Рисует лёгкий шейдер рендера, а не шейдер прямоугольников GPUI.
+    #[cfg(target_os = "android")]
+    pub fn paint_host_ring(&mut self, bounds: Bounds<Pixels>, width: Pixels, color: crate::Rgba, fill: crate::Rgba) {
+        use crate::PaintSurface;
+
+        self.invalidator.debug_assert_paint();
+
+        let scale_factor = self.scale_factor();
+        let bounds = self.snap_bounds(bounds);
+        let content_mask = self.snapped_content_mask();
+        let pm = |c: crate::Rgba| [c.r * c.a, c.g * c.a, c.b * c.a, c.a];
+        let ring = crate::HostRing { width: width.0 * scale_factor, color: pm(color), fill: pm(fill) };
+        self.next_frame.scene.insert_primitive(PaintSurface {
+            order: 0,
+            bounds,
+            content_mask,
+            texture: crate::HostTexture { id: u32::MAX, uv: [0.0; 4], rotation: 0, mirror: false, ring: Some(ring) },
+            corner_radii: Corners::default(),
+        });
+    }
+
     /// Removes an image from the sprite atlas.
     pub fn drop_image(&mut self, data: Arc<RenderImage>) -> Result<()> {
         for frame_index in 0..data.frame_count() {

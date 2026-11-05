@@ -793,6 +793,21 @@ pub struct HostTexture {
     pub rotation: u16,
     /// Зеркало по горизонтали (после поворота).
     pub mirror: bool,
+    /// Не текстура, а кольцо (`Window::paint_host_ring`): тогда `id`, `uv`, `rotation` и `mirror` не читаются.
+    pub ring: Option<HostRing>,
+}
+
+/// Кольцо (Android, `Window::paint_host_ring`): круг, вписанный в прямоугольник элемента, рисует свой лёгкий шейдер
+/// рендера — без тяжёлого шейдера прямоугольников, и пиксели считаются только на самом кольце.
+#[cfg(target_os = "android")]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HostRing {
+    /// Толщина кольца в пикселях окна (уже с масштабом).
+    pub width: f32,
+    /// Цвет кольца, RGBA, умноженный на альфу.
+    pub color: [f32; 4],
+    /// Заливка внутри, RGBA, умноженная на альфу (прозрачная — рисуется только кольцо).
+    pub fill: [f32; 4],
 }
 
 impl From<PaintSurface> for Primitive {
